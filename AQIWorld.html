@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>World AQI by Country</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef2f3;
+      padding: 30px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .country-list {
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .country {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: background 0.3s;
+    }
+
+    .country:hover {
+      background: #f9f9f9;
+    }
+
+    .aqi-result {
+      margin-top: 10px;
+      font-size: 0.95em;
+      color: #555;
+    }
+
+    .good { color: green; }
+    .moderate { color: orange; }
+    .unhealthy { color: red; }
+  </style>
+</head>
+<body>
+
+<h1>🌍 Country AQI Dashboard</h1>
+<div class="country-list" id="countryList">
+  <!-- Countries will be inserted here -->
+</div>
+
+<script>
+  const countries = [
+    { name: "India", capital: "New Delhi" },
+    { name: "United States", capital: "Washington" },
+    { name: "United Kingdom", capital: "London" },
+    { name: "France", capital: "Paris" },
+    { name: "Germany", capital: "Berlin" },
+    { name: "China", capital: "Beijing" },
+    { name: "Japan", capital: "Tokyo" },
+    { name: "Brazil", capital: "Brasília" },
+    { name: "Russia", capital: "Moscow" },
+    { name: "Canada", capital: "Ottawa" }
+  ];
+
+  const token = "demo"; // Replace with your AQICN API token
+  const countryList = document.getElementById("countryList");
+
+  countries.forEach(country => {
+    const div = document.createElement("div");
+    div.className = "country";
+    div.innerHTML = `<strong>${country.name}</strong> (Capital: ${country.capital})<div class="aqi-result">Click to load AQI</div>`;
+    
+    div.addEventListener("click", () => {
+      const resultDiv = div.querySelector(".aqi-result");
+      resultDiv.textContent = "Loading...";
+      
+      fetch(`https://api.waqi.info/feed/${country.capital}/?token=${token}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "ok") {
+            const aqi = data.data.aqi;
+            const level = getAQILevel(aqi);
+            resultDiv.innerHTML = `AQI: <strong class="${level.toLowerCase()}">${aqi} (${level})</strong>`;
+          } else {
+            resultDiv.textContent = "Data not available";
+          }
+        })
+        .catch(() => {
+          resultDiv.textContent = "Error fetching data";
+        });
+    });
+
+    countryList.appendChild(div);
+  });
+
+  function getAQILevel(aqi) {
+    if (aqi <= 50) return "Good";
+    if (aqi <= 100) return "Moderate";
+    if (aqi <= 150) return "Unhealthy";
+    if (aqi <= 200) return "Very Unhealthy";
+    return "Hazardous";
+  }
+</script>
+
+</body>
+</html>

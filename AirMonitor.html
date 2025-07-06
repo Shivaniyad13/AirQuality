@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Air Quality Monitor with GPS</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f2f2f2;
+      padding: 30px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px;
+      border-radius: 6px;
+    }
+
+    .aqi-box {
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 12px;
+      color: white;
+      max-width: 400px;
+    }
+
+    .good { background-color: #009966; }
+    .fair { background-color: #ffde33; color: #000; }
+    .moderate { background-color: #ff9933; }
+    .poor { background-color: #cc0033; }
+    .very-poor { background-color: #660099; }
+
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 90%;
+      max-width: 500px;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    .footer-note {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌍 Air Quality Monitor</h1>
+  <p>Enter a city or use GPS location:</p>
+  <input type="text" id="cityInput" placeholder="e.g. Kanpur, Delhi" />
+  <button onclick="getAirQuality()">Search</button>
+  <button onclick="getAirQualityByLocation()">📍 Use My Location</button>
+
+  <div id="result"></div>
+
+  <p class="footer-note">Powered by OpenWeatherMap API</p>
+
+  <script>
+    const API_KEY = "9f9ec09727fcd88411749db272ca5af4";
+
+    const levels = ["Good", "Fair", "Moderate", "Poor", "Very Poor"];
+    const classes = ["good", "fair", "moderate", "poor", "very-poor"];
+
+    async function getAirQuality() {
+      const city = document.getElementById("cityInput").value.trim();
+      if (!city) {
+        document.getElementById("result").innerHTML = "⚠️ Please enter a city name.";
+        return;
+      }
+
+      try {
+        const geoRes = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${9f9ec09727fcd88411749db272ca5af4}`);
+        const geoData = await geoRes.json();
+
+        if (!geoData || geoData.length === 0) {
+          document.getElementById("result").innerHTML = `❌ City "${city}" not found.`;
+          return;
+        }
+
+        const { lat, lon, name } = geoData[0];
+        fetchAQI(lat, lon, name);
+      } catch (error) {
+        document.getElementById("result").innerHTML = "⚠️ Failed to fetch data.";
+      }
+    }
+
+    function getAirQualityByLocation() {
+      if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          fetchAQI(lat, lon, "Your Location");
+        },
+        () => {
+          document.getElementById("result").innerHTML = "❌ Failed to get your location.";
+        }
+      );
+    }
+
+    async function fetchAQI(lat, lon, locationName) {
+      try {
+        const airRes = await fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${9f9ec09727fcd88411749db272ca5af4}`);
+        const airData = await airRes.json();
+        const data = airData.list[0];
+
+        const aqi = data.main.aqi;
+        const level = levels[aqi - 1];
+        const levelClass = classes[aqi - 1];
+        const components = data.components;
+
+        document.getElementById("result").innerHTML = `
+          <div class="aqi-box ${levelClass}">
+            <h2>${locationName}</h2>
+            <h3>AQI: ${aqi} (${level})</h3>
+          </div>
+
+          <table>
+            <tr><th>Pollutant</th><th>μg/m³</th></tr>
+            <tr><td>PM2.5</td><td>${components.pm2_5}</td></tr>
+            <tr><td>PM10</td><td>${components.pm10}</td></tr>
+            <tr><td>CO</td><td>${components.co}</td></tr>
+            <tr><td>NO₂</td><td>${components.no2}</td></tr>
+            <tr><td>SO₂</td><td>${components.so2}</td></tr>
+            <tr><td>O₃</td><td>${components.o3}</td></tr>
+          </table>
+        `;
+      } catch (error) {
+        document.getElementById("result").innerHTML = "⚠️ Error fetching AQI data.";
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,577 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Air Quality & Weather Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      text-align: center;
+      color: brown;
+      margin: 10px 0;
+    }
+
+    #search-box {
+      width: 300px;
+      padding: 8px;
+      font-size: 16px;
+      margin: 10px auto;
+      display: block;
+    }
+
+    #container {
+      display: flex;
+      height: 80vh;
+    }
+
+    #info-sidebar {
+      width: 300px;
+      padding: 20px;
+      background: #f8f8f8;
+      border-right: 2px solid #ccc;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    #info-sidebar h2 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    .aqi-bar {
+      height: 20px;
+      margin-bottom: 10px;
+    }
+
+    .good { background-color: #009966; }
+    .fair { background-color: #ffde33; }
+    .moderate { background-color: #ff9933; }
+    .poor { background-color: #cc0033; }
+    .very-poor { background-color: #660099; }
+
+    #map {
+      flex-grow: 1;
+    }
+
+    #loader {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .spinner {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #3498db;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+      */
+.logo {
+  display: flex
+}
+
+.logo h1 {
+  font-size: 70px;
+  color: rgb(247, 81, 10);
+  margin-top: -2px
+    /* margin-left: 10px; */
+}
+
+.icons {
+  margin-left: 2px;
+  display: flex;
+  justify-content: end;
+}
+
+.icons i {
+  font-size: 22px;
+  margin-inline: 8px;
+  background-color: #fff;
+  color: black;
+  padding: 9px;
+  border-radius: 2px;
+}
+
+.icons i:hover {
+  color: orange;
+  cursor: pointer;
+}
+
+nav input {
+  width: 400px;
+  padding: 11px;
+  height: 40px;
+  border: none;
+  outline: none;
+  font-size: 28px;
+  border-radius: 2px;
+  justify-content: center;
+}
+
+.input i {
+  margin-left: -25px;
+  color: black;
+  font-size: 28px;
+}
+
+.promotion {
+  background-color: black;
+  /* width: 100px; */
+  /* height:100px; */
+  */ padding: 20px 0;
+  justify-content: center;
+  display: flex;
+  /* position:absolute; */
+  font-size: 1.5rem;
+  text-align: center;
+  color: azure;
+}
+
+
+nav {
+  justify-content: center;
+  background-color: rgb(193, 189, 208);
+  align-items: center;
+  text-align: center;
+  font-size: 1.5 rem;
+  position: sticky;
+  top: 0;
+}
+
+nav ul {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+  gap: 60px;
+  color:#0f1111
+}
+
+
+nav a {
+  color: black;
+  text-decoration: none;
+  font-size: 20px;
+}
+
+.hero-section {
+  background-size: cover;
+  height: 360px;
+  background-image: url("bad-AQI.gif");
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  animation-name: changeimage;
+  animation-duration: 5s;
+  animation-fill-mode: forwards;
+
+  animation-timing-function: ease-in;
+}
+footer{
+  margin-top:15px;
+}
+.foot-panel1{
+  background-color: #37475a;
+  color:white;
+  height:50px;
+  display:flex;
+  justify-content: center;
+  align-item:center;
+  font-size:0.85rem;
+}
+.foot-panel2{
+  background-color: #222f32;
+  color:white;
+  height:300px;
+  display:flex;
+  justify-content: space-evenly;
+
+}
+ul{
+  margin-top:20px;
+}
+ .foot-panel2 ul a{
+  display: block;
+  font-size: 1 rem;
+  margin-top:10px;
+  color:white;
+}
+.foot-panel3{
+  background-color:#222f32;
+  color:white;
+  border-top:0.5px solid white;
+  height:7;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.foot-panel4{
+  background-color: #0f1111;
+  color:white;
+  /* display:flex; */
+  /* align-item:center; */
+  /* justify-content:space-evenly ; */
+  height:100px;
+}
+.pages{
+  font-size:0.7rem;
+  text-align:center;
+  padding-top:25px;
+}
+.copy-right{
+  padding-top:5px;
+  font-size:0.7rem;
+  text-align:center;
+  
+}
+  </style>
+
+</head>
+<body>
+  <h1>🌍 Air Quality & Weather Map</h1>
+  
+  <div class="promotion"><marque>Developing an Algorithm for Air Quality Visualizer and Forecast App to Generate Granular, Real-time, and Predictive Air Quality Information</marque></div>
+  <header>
+    <div class="container">
+      <nav>
+        <div class="logo">
+          <h1><b>Aerologic </b></h1>
+        </div>
+        <div class="input">
+          <input type="text" value="" id="inp" placeholder="search here...">
+    
+
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+         
+          <div class="icons">
+         <a href="AQIreal.html">
+  <i class="fa-solid fa-globe"></i>
+</a>
+        <div class="icons">
+         <a href="login.html">
+  <i class="fa-solid fa-user"></i>
+</a>
+
+          <div class="icons">
+         <a href="cart.html">
+    <i class="fa-solid fa-cart-shopping"></i>
+</a>
+         
+       
+         
+
+          <!-- <i class="fa-solid fa-chart-bar"></i> -->
+
+        </div>
+      </nav>
+    </div>
+  </header>
+  <div class="hero-section">
+    <div class="hero-message">
+
+      
+    </div>
+  </div>
+  <nav>
+    <ul>
+      <li>
+        <a href="AirQuality.html"> Air Quality</a>
+      </li>
+      <li>
+        <a href="AirMonitor.html">Air Monitor</a>
+      </li>
+      <li>
+        <a href="Air purifier"> Air purifier</a>
+
+      </li>
+      
+       <!-- <li>
+         <a href="Air purifier">Air purifier</a> -->
+
+      <!-- </li> --> 
+      
+      <li> 
+        <a href="News">News</a>
+    
+      </li>
+    </ul>
+  </nav>
+  <input type="text" id="search-box" placeholder="Enter location name" />
+  <div id="container">
+    <div id="info-sidebar">
+      <h2>📍 Location Info</h2>
+      <p id="location">City: —</p>
+      <p id="temperature">🌡 Temp: —</p>
+      <p id="weather">☁ Weather: —</p>
+      <p id="aqi">💨 AQI: —</p>
+      <p id="pm25">PM2.5: —</p>
+      <p id="pm10">PM10: —</p>
+      <div class="aqi-bar good"></div>
+      <div class="aqi-bar fair"></div>
+      <div class="aqi-bar moderate"></div>
+      <div class="aqi-bar poor"></div>
+      <div class="aqi-bar very-poor"></div>
+    </div>
+    <div id="map"></div>
+  </div>
+
+  <div id="loader"><div class="spinner"></div></div>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef2f3;
+      padding: 30px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .country-list {
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .country {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: background 0.3s;
+    }
+
+    .country:hover {
+      background: #f9f9f9;
+    }
+
+    .aqi-result {
+      margin-top: 10px;
+      font-size: 0.95em;
+      color: #555;
+    }
+
+    .good { color: green; }
+    .moderate { color: orange; }
+    .unhealthy { color: red; }
+  </style>
+</head>
+<body>
+
+<h1>🌍 Country AQI Dashboard</h1>
+<div class="country-list" id="countryList">
+  <!-- Countries will be inserted here -->
+</div>
+
+<script>
+  const countries = [
+    { name: "India", capital: "New Delhi" },
+    { name: "United States", capital: "Washington" },
+    { name: "United Kingdom", capital: "London" },
+    { name: "France", capital: "Paris" },
+    { name: "Germany", capital: "Berlin" },
+    { name: "China", capital: "Beijing" },
+    { name: "Japan", capital: "Tokyo" },
+    { name: "Brazil", capital: "Brasília" },
+    { name: "Russia", capital: "Moscow" },
+    { name: "Canada", capital: "Ottawa" }
+  ];
+
+  const token = "demo"; // Replace with your AQICN API token
+  const countryList = document.getElementById("countryList");
+
+  countries.forEach(country => {
+    const div = document.createElement("div");
+    div.className = "country";
+    div.innerHTML = `<strong>${country.name}</strong> (Capital: ${country.capital})<div class="aqi-result">Click to load AQI</div>`;
+    
+    div.addEventListener("click", () => {
+      const resultDiv = div.querySelector(".aqi-result");
+      resultDiv.textContent = "Loading...";
+      
+      fetch(`https://api.waqi.info/feed/${country.capital}/?token=${token}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "ok") {
+            const aqi = data.data.aqi;
+            const level = getAQILevel(aqi);
+            resultDiv.innerHTML = `AQI: <strong class="${level.toLowerCase()}">${aqi} (${level})</strong>`;
+          } else {
+            resultDiv.textContent = "Data not available";
+          }
+        })
+        .catch(() => {
+          resultDiv.textContent = "Error fetching data";
+        });
+    });
+
+    countryList.appendChild(div);
+  });
+
+  function getAQILevel(aqi) {
+    if (aqi <= 50) return "Good";
+    if (aqi <= 100) return "Moderate";
+    if (aqi <= 150) return "Unhealthy";
+    if (aqi <= 200) return "Very Unhealthy";
+    return "Hazardous";
+  }
+</script>
+  
+  <footer>
+    <div class="foot-panel1">
+        Back to Top
+    </div>
+    //<input type="file" capture="environment">
+    <div class="foot-panel2">
+        <ul>
+            <p>About IQAir</p>
+            <a>Contact Us</a>
+              <a>About Us</a>  
+               <a>Careers</a> 
+               <a>join the community</a> 
+               <a>become a Dealer</a> 
+                
+        </ul>
+        <ul>
+            <p>Air Quality</p>
+            <a>Air Quality Map</a>
+            <a>World Air Quality </a>
+            <a>
+               Historical Air Quality Data</a> 
+               <a>Live AQI⁺ City Ranking</a>       
+        </ul>
+        <ul>
+            <p>Products</p>                  
+            <a>Air Quality Monitors
+</a>
+              <a> Air Purifiers</a>  
+               <a> Replacement Filters</a> 
+               <a>HVAC Air Filtration</a> 
+               <a>Become an Affiliate</a> 
+               <a>IQAir Dashboard</a>
+               <a> Advertise Your Products</a>
+               <a> Face Masks</a>
+                
+        </ul>
+        <ul>
+            <p>News</p>
+            <a>Air Quality News</a>
+              <a>Health and Wellness</a>  
+               <a>Allergies and Asthma</a> 
+               <a>Pets</a> 
+               <a>Success Stories</a> 
+               <a>Wildfire/a>
+               <a>help</a>
+                
+        </ul>
+    </div>
+    <div class="foot-panel3">
+        <div class="logo"></div>
+    </div>
+    <div class="foot-panel4">
+        <div class="pages">
+            <a>Condition of use</a>
+            <a>Privacy Notice</a>
+            <a>Your Aids Privecy choices</a>
+        </div>
+        <div class="copy-right">
+            <a>© 1996-2024, Aerologic.com, Inc. or its affiliates</a>
+        </div>
+    </div>
+</footer>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const weatherApiKey = "f6dadb771340dc69ef307495d8804991";
+    const loader = document.getElementById("loader");
+
+    const map = L.map("map").setView([26.8467, 80.9462], 6);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(map);
+    const marker = L.marker([26.8467, 80.9462]).addTo(map);
+
+    document.getElementById("search-box").addEventListener("change", function () {
+      const location = this.value;
+      loader.style.display = "flex";
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${location}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.length === 0) {
+            loader.style.display = "none";
+            alert("Location not found.");
+            return;
+          }
+          const lat = parseFloat(data[0].lat);
+          const lon = parseFloat(data[0].lon);
+          map.setView([lat, lon], 10);
+          marker.setLatLng([lat, lon]);
+
+          fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${weatherApiKey}&units=metric`)
+            .then((res) => res.json())
+            .then((weatherData) => {
+              const weather = weatherData.weather[0].main.toLowerCase();
+              const temp = weatherData.main.temp;
+              const city = weatherData.name;
+
+              document.getElementById("location").textContent = `City: ${city}`;
+              document.getElementById("temperature").textContent = `🌡 Temp: ${temp}°C`;
+              document.getElementById("weather").textContent = `☁ Weather: ${weather}`;
+
+              fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${weatherApiKey}`)
+                .then((res) => res.json())
+                .then((airData) => {
+                  const aqi = airData.list[0].main.aqi;
+                  const pm2_5 = airData.list[0].components.pm2_5;
+                  const pm10 = airData.list[0].components.pm10;
+
+                  const aqiText = [
+                    "🔵 Good",
+                    "🟢 Fair",
+                    "🟡 Moderate",
+                    "🟠 Poor",
+                    "🔴 Very Poor"
+                  ][aqi - 1];
+
+                  document.getElementById("aqi").textContent = `💨 AQI: ${aqiText}`;
+                  document.getElementById("pm25").textContent = `PM2.5: ${pm2_5}`;
+                  document.getElementById("pm10").textContent = `PM10: ${pm10}`;
+                  loader.style.display = "none";
+                });
+            });
+        })
+        .catch(() => {
+          loader.style.display = "none";
+          alert("Error finding location or weather data.");
+        });
+    });
+  </script>
+</body>
+</html>

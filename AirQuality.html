@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Air Quality Index Checker</title>
+</head>
+<body>
+  <h1>🌍 Air Quality Index Checker</h1>
+  <input type="text" id="cityInput" placeholder="Enter City (e.g., Kanpur)">
+  <button onclick="getAirQuality()">Check AQI</button>
+  <div id="result"></div>
+
+  <script>
+    async function getAirQuality() {
+      const city = document.getElementById("cityInput").value.trim();
+      const resultDiv = document.getElementById("result");
+
+      if (!city) {
+        resultDiv.innerHTML = "⚠️ Please enter a city name.";
+        return;
+      }
+
+      try {
+        const geoRes = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=9f9ec09727fcd88411749db272ca5af4`);
+        const geoData = await geoRes.json();
+
+        if (!Array.isArray(geoData) || geoData.length === 0) {
+          resultDiv.innerHTML = `❌ City "${city}" not found. Try again.`;
+          return;
+        }
+
+        const { lat, lon } = geoData[0];
+
+        const airRes = await fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=9f9ec09727fcd88411749db272ca5af4`);
+        const airData = await airRes.json();
+
+        const aqi = airData.list[0].main.aqi;
+        const aqiLevels = ["Good", "Fair", "Moderate", "Poor", "Very Poor"];
+        const level = aqiLevels[aqi - 1];
+
+        resultDiv.innerHTML = `
+          <h3>✅ AQI for ${city}</h3>
+          <p><strong>Level:</strong> ${aqi} (${level})</p>
+        `;
+      } catch (error) {
+        console.error(error);
+        resultDiv.innerHTML = `⚠️ Error fetching data: ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>

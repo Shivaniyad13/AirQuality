@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AQI Cart</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef2f3;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+    }
+
+    input, button {
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    #cityInput {
+      width: 70%;
+    }
+
+    #addBtn {
+      background: #28a745;
+      color: white;
+      cursor: pointer;
+    }
+
+    .aqi-cart {
+      margin-top: 20px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      border-left: 5px solid #4caf50;
+      margin-bottom: 10px;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+
+    .cart-item.unhealthy {
+      border-left-color: #f44336;
+    }
+
+    .remove-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🛒 My AQI Cart</h2>
+    <input id="cityInput" type="text" placeholder="Enter city name" />
+    <button id="addBtn">Add to Cart</button>
+
+    <div class="aqi-cart" id="aqiCart">
+      <!-- AQI items will appear here -->
+    </div>
+  </div>
+
+  <script>
+    const token = "demo"; // Replace with your real AQICN API token
+    const cityInput = document.getElementById("cityInput");
+    const addBtn = document.getElementById("addBtn");
+    const aqiCart = document.getElementById("aqiCart");
+
+    addBtn.addEventListener("click", () => {
+      const city = cityInput.value.trim();
+      if (!city) return alert("Please enter a city name");
+
+      fetch(`https://api.waqi.info/feed/${city}/?token=${token}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status !== "ok") {
+            alert("City not found or API error");
+            return;
+          }
+
+          const aqi = data.data.aqi;
+          const condition = getAQICondition(aqi);
+          const div = document.createElement("div");
+          div.className = `cart-item ${aqi >= 150 ? "unhealthy" : ""}`;
+          div.innerHTML = `
+            <div>
+              <strong>${city}</strong><br>
+              AQI: ${aqi} (${condition})
+            </div>
+            <button class="remove-btn">Remove</button>
+          `;
+          aqiCart.appendChild(div);
+
+          div.querySelector(".remove-btn").addEventListener("click", () => {
+            aqiCart.removeChild(div);
+          });
+
+          cityInput.value = "";
+        })
+        .catch(err => alert("Error fetching AQI"));
+    });
+
+    function getAQICondition(aqi) {
+      if (aqi <= 50) return "Good";
+      if (aqi <= 100) return "Moderate";
+      if (aqi <= 150) return "Unhealthy for Sensitive";
+      if (aqi <= 200) return "Unhealthy";
+      if (aqi <= 300) return "Very Unhealthy";
+      return "Hazardous";
+    }
+  </script>
+</body>
+</html>
