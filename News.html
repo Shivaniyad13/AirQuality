@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Air Quality News</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f9fc;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #006699;
+    }
+
+    .news-container {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .news-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .news-card h2 {
+      font-size: 20px;
+      color: #004466;
+    }
+
+    .news-card p {
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .news-card a {
+      display: inline-block;
+      margin-top: 10px;
+      color: #007acc;
+      text-decoration: none;
+    }
+
+    .news-card a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>📰 Air Quality & Environment News</h1>
+
+  <div class="news-container" id="newsSection">
+    <!-- News will load here -->
+  </div>
+
+  <script>
+    const sampleNews = [
+      {
+        title: "Air Pollution Hits Critical Levels in North India",
+        summary: "Recent data shows alarming levels of PM2.5 and PM10 in cities like Delhi and Kanpur, triggering health warnings.",
+        url: "https://www.example.com/news/air-pollution-india"
+      },
+      {
+        title: "Green Initiatives: How Cities Are Fighting Air Pollution",
+        summary: "From electric buses to green rooftops, urban areas are adopting innovative methods to reduce air pollution.",
+        url: "https://www.example.com/news/green-initiatives"
+      },
+      {
+        title: "How Climate Change is Worsening Air Quality",
+        summary: "Climate experts warn that rising temperatures may be making pollution more dangerous and persistent.",
+        url: "https://www.example.com/news/climate-change-air"
+      }
+    ];
+
+    const newsContainer = document.getElementById("newsSection");
+
+    sampleNews.forEach(article => {
+      const card = document.createElement("div");
+      card.className = "news-card";
+
+      card.innerHTML = `
+        <h2>${article.title}</h2>
+        <p>${article.summary}</p>
+        <a href="${article.url}" target="_blank">Read full article →</a>
+      `;
+
+      newsContainer.appendChild(card);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Virtual Air Purifier</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #d7e1ec, #f2f9ff);
+      padding: 30px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px;
+      border-radius: 8px;
+    }
+
+    .status-box {
+      margin: 20px auto;
+      padding: 25px;
+      border-radius: 12px;
+      max-width: 450px;
+      color: white;
+    }
+
+    .good { background-color: #009966; }
+    .fair { background-color: #ffde33; color: #000; }
+    .moderate { background-color: #ff9933; }
+    .poor { background-color: #cc0033; }
+    .very-poor { background-color: #660099; }
+
+    .purifier-on {
+      background-color: #0080ff;
+      color: white;
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 450px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .tips {
+      background: #fff;
+      color: #333;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 20px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1>💨 Smart Air Purifier System</h1>
+  <p>Check air quality and auto-activate purifier</p>
+
+  <input type="text" id="cityInput" placeholder="Enter your city (e.g., Lucknow)" />
+  <button onclick="checkAir()">Check AQI & Purify</button>
+
+  <div id="result"></div>
+  <div id="purifierStatus"></div>
+  <div id="tipsBox"></div>
+
+  <script>
+    const API_KEY = "31f15314c27243d05eaea296bbc1295a";
+    const levels = ["Good", "Fair", "Moderate", "Poor", "Very Poor"];
+    const classes = ["good", "fair", "moderate", "poor", "very-poor"];
+
+    async function checkAir() {
+      const city = document.getElementById("cityInput").value.trim();
+      if (!city) {
+        document.getElementById("result").innerHTML = "⚠️ Please enter a city name.";
+        return;
+      }
+
+      try {
+        const geoRes = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${API_KEY}`);
+        const geoData = await geoRes.json();
+        if (!geoData || geoData.length === 0) {
+          document.getElementById("result").innerHTML = `❌ City "${city}" not found.`;
+          return;
+        }
+
+        const { lat, lon, name } = geoData[0];
+        const airRes = await fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`);
+        const airData = await airRes.json();
+        const data = airData.list[0];
+
+        const aqi = data.main.aqi;
+        const level = levels[aqi - 1];
+        const levelClass = classes[aqi - 1];
+
+        // AQI box
+        document.getElementById("result").innerHTML = `
+          <div class="status-box ${levelClass}">
+            <h2>${name}</h2>
+            <h3>Air Quality: AQI ${aqi} (${level})</h3>
+          </div>
+        `;
+
+        // Purifier status
+        if (aqi >= 3) {
+          document.getElementById("purifierStatus").innerHTML = `
+            <div class="purifier-on">
+              🛑 Air Purifier Activated<br/>
+              Air is not clean. Running purification mode...
+            </div>
+          `;
+          document.getElementById("tipsBox").innerHTML = `
+            <div class="tips">
+              <strong>Tips to Improve Indoor Air:</strong>
+              <ul>
+                <li>Keep windows closed during high pollution.</li>
+                <li>Use indoor plants like Peace Lily, Aloe Vera.</li>
+                <li>Avoid smoking/candles indoors.</li>
+                <li>Use air purifiers with HEPA filters.</li>
+              </ul>
+            </div>
+          `;
+        } else {
+          document.getElementById("purifierStatus").innerHTML = `
+            <div class="purifier-on" style="background-color:#00cc66">
+              ✅ Air is Clean<br/>
+              No purifier needed. Enjoy fresh air!
+            </div>
+          `;
+          document.getElementById("tipsBox").innerHTML = "";
+        }
+
+      } catch (error) {
+        document.getElementById("result").innerHTML = "⚠️ Failed to fetch AQI data.";
+      }
+    }
+  </script>
+</body>
+</html>
