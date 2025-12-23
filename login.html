@@ -3,82 +3,338 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Login Page</title>
+  <title>Welcome - Aerologic</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
+    /* 2D Flat UI Design */
+    :root {
+      --primary: #007bff;
+      --primary-hover: #0056b3;
+      --bg-color: #f0f2f5;
+      --white: #ffffff;
+      --text: #333333;
+      --gray: #cccccc;
+      --error: #e74c3c;
+      --success: #2ecc71;
+    }
+
     body {
-      background: #f0f2f5;
-      font-family: Arial, sans-serif;
+      background: var(--bg-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
     }
 
-    .login-box {
-      background: white;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      width: 300px;
+    .auth-container {
+      background: var(--white);
+      width: 350px;
+      border-radius: 8px;
+      /* Slight radius for modern feel, but kept flat mostly */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      /* Subtle shadow for 2D depth */
+      overflow: hidden;
     }
 
-    .login-box h2 {
-      text-align: center;
-      margin-bottom: 30px;
-      color: #333;
+    .tabs {
+      display: flex;
+      background: #e9ecef;
     }
 
-    .login-box input[type="text"],
-    .login-box input[type="password"] {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0 20px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    .login-box button {
-      width: 100%;
-      padding: 10px;
-      background: #007bff;
+    .tab-btn {
+      flex: 1;
       border: none;
-      color: white;
+      background: none;
+      padding: 15px;
       font-size: 16px;
-      border-radius: 5px;
+      font-weight: 600;
+      color: #666;
       cursor: pointer;
+      transition: all 0.2s ease;
+      border-bottom: 3px solid transparent;
+      outline: none;
     }
 
-    .login-box button:hover {
-      background: #0056b3;
+    .tab-btn.active {
+      background: var(--white);
+      color: var(--primary);
+      border-bottom: 3px solid var(--primary);
+    }
+
+    .tab-btn:hover:not(.active) {
+      background: #dde2e6;
+    }
+
+    .forms-wrapper {
+      padding: 30px;
+    }
+
+    .form-section {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .form-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h2 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 25px;
+      color: var(--text);
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .input-group i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #aaa;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="email"] {
+      width: 100%;
+      padding: 12px 12px 12px 40px;
+      /* Space for icon */
+      box-sizing: border-box;
+      border: 2px solid #e1e4e8;
+      border-radius: 4px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      border: none;
+      color: var(--white);
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.2s;
+    }
+
+    .btn-submit:hover {
+      background: var(--primary-hover);
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .link {
+      color: var(--primary);
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+
+    .error-msg {
+      color: var(--error);
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+      text-align: left;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="login-box">
-    <h2>Login</h2>
-    <form id="loginForm">
-      <input type="text" placeholder="Username" name="username" id="username" required>
-      <input type="password" placeholder="Password" name="password" id="password" required>
-      <button type="submit">Login</button>
-    </form>
+  <div class="auth-container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+      <button class="tab-btn" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <div class="forms-wrapper">
+
+      <!-- LOGIN FORM -->
+      <div id="login" class="form-section active">
+        <h2>Welcome Back</h2>
+        <form id="loginForm">
+          <div class="input-group">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="loginUser" placeholder="Username" required>
+          </div>
+          <div class="input-group">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="loginPass" placeholder="Password" required>
+          </div>
+          <p id="loginError" class="error-msg">Invalid username or password.</p>
+          <button type="submit" class="btn-submit">Login</button>
+          <p class="message">Don't have an account? <span class="link" onclick="switchTab('register')">Sign up</span>
+          </p>
+        </form>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div id="register" class="form-section">
+        <h2>Create Account</h2>
+        <form id="registerForm">
+          <div class="input-group">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="regUser" placeholder="Username" required>
+          </div>
+          <div class="input-group">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" id="regEmail" placeholder="Email Address" required>
+          </div>
+          <div class="input-group">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="regPass" placeholder="Password" required>
+          </div>
+          <div class="input-group">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="regConfirmPass" placeholder="Confirm Password" required>
+          </div>
+          <p id="regError" class="error-msg"></p>
+          <button type="submit" class="btn-submit">Register</button>
+          <p class="message">Already have an account? <span class="link" onclick="switchTab('login')">Login</span></p>
+        </form>
+      </div>
+
+    </div>
   </div>
 
   <script>
-    document.getElementById('loginForm').addEventListener('submit', function (event) {
-      event.preventDefault();
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
+    // --- TABS LOGIC ---
+    function switchTab(tabName) {
+      // Buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent.toLowerCase().includes(tabName)) {
+          btn.classList.add('active');
+        } else if (tabName === 'login' && btn.textContent === 'Login') {
+          btn.classList.add('active'); // fallback
+        } else if (tabName === 'register' && btn.textContent === 'Register') {
+          btn.classList.add('active'); // fallback
+        }
+      });
 
-      if (username && password) {
+      // Forms
+      document.querySelectorAll('.form-section').forEach(form => form.classList.remove('active'));
+      document.getElementById(tabName).classList.add('active');
+
+      // Clear errors
+      document.getElementById('loginError').style.display = 'none';
+      document.getElementById('regError').style.display = 'none';
+    }
+
+    // --- AUTH LOGIC (LocalStorage) ---
+
+    // Constants
+    const USERS_KEY = 'aerologic_users';
+
+    function getUsers() {
+      return JSON.parse(localStorage.getItem(USERS_KEY)) || [];
+    }
+
+    function saveUser(user) {
+      const users = getUsers();
+      users.push(user);
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
+
+    // REGISTER
+    document.getElementById('registerForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById('regUser').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPass').value;
+      const confirmPass = document.getElementById('regConfirmPass').value;
+      const errorMsg = document.getElementById('regError');
+
+      // Basic Validation
+      if (password !== confirmPass) {
+        errorMsg.textContent = "Passwords do not match.";
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      if (password.length < 4) {
+        errorMsg.textContent = "Password must be at least 4 characters.";
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      // Check if user exists
+      const users = getUsers();
+      if (users.some(u => u.username === username)) {
+        errorMsg.textContent = "Username already taken.";
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      // Save new user
+      saveUser({ username, email, password });
+
+      alert('Registration successful! Please login.');
+      document.getElementById('registerForm').reset();
+      switchTab('login');
+      // Pre-fill login
+      document.getElementById('loginUser').value = username;
+    });
+
+    // LOGIN
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById('loginUser').value.trim();
+      const password = document.getElementById('loginPass').value;
+      const errorMsg = document.getElementById('loginError');
+
+      const users = getUsers();
+      const user = users.find(u => u.username === username && u.password === password);
+
+      if (user) {
+        // SUCCESS
         localStorage.setItem('loggedIn', 'true');
+        localStorage.setItem('currentUser', username);
         window.location.href = 'index.html';
       } else {
-        alert('Please enter both username and password.');
+        // FAIL
+        errorMsg.style.display = 'block';
       }
     });
+
   </script>
 
 </body>

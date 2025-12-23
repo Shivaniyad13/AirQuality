@@ -4,243 +4,224 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Air Quality & Weather Map</title>
+  <title>Air Quality & Weather Dashboard | Aerologic</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+  <!-- Map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-    integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <h1>🌍 Air Quality & Weather Map</h1>
 
-  <div class="promotion">
-    <marquee>Developing an Algorithm for Air Quality Visualizer and Forecast App to Generate Granular, Real-time, and
-      Predictive Air Quality Information</marquee>
-  </div>
-
-  <header>
-    <div class="container">
-      <nav>
-        <div class="logo">
-          <h1><b>Aerologic</b></h1>
-        </div>
-        <!-- <div class="input">
-          <input type="text" id="inp" placeholder="search here...">
-          <i class="fa-solid fa-magnifying-glass"></i>
-        </div> -->
-        <div class="icons">
-          <a href="AQIreal.html"><i class="fa-solid fa-globe"></i></a>
-          <button id="logoutBtn" style="background: none; border: none; cursor: pointer;"><i
-              class="fa-solid fa-sign-out-alt"></i></button>
-          <a href="cart.html"><i class="fa-solid fa-cart-shopping"></i></a>
-        </div>
-      </nav>
-    </div>
-  </header>
-
-  <!-- <div class="hero-section">
-    <div class="hero-message"></div>
-  </div> -->
-
-  <nav>
-    <ul>
-      <li><a href="AirQuality.html">Air Quality</a></li>
-      <li><a href="AirMonitor.html">Air Monitor</a></li>
-      <li><a href="AirPurifier.html">Air purifier</a></li>
-      <li><a href="News">News</a></li>
-    </ul>
-  </nav>
-
-  <input type="text" id="search-box" placeholder="Enter location name" />
-
-  <div id="container">
-    <div id="info-sidebar">
-      <h2>📍 Location Info</h2>
-      <p id="location">City: —</p>
-      <p id="temperature">🌡 Temp: —</p>
-      <p id="weather">☁ Weather: —</p>
-      <p id="aqi">💨 AQI: —</p>
-      <p id="pm25">PM2.5: —</p>
-      <p id="pm10">PM10: —</p>
-      <div class="aqi-bar good"></div>
-      <div class="aqi-bar fair"></div>
-      <div class="aqi-bar moderate"></div>
-      <div class="aqi-bar poor"></div>
-      <div class="aqi-bar very-poor"></div>
-    </div>
-    <div id="map"></div>
-  </div>
-
+  <!-- LOADING SPINNER -->
   <div id="loader">
     <div class="spinner"></div>
   </div>
 
-  <div class="two-column">
-    <!-- Left: AQI Dashboard -->
-    <div class="left">
-      <h1>🌍 Country AQI Dashboard</h1>
-      <div class="country-list" id="countryList">
-        <!-- Countries will be inserted here -->
+  <!-- NAVIGATION -->
+  <header>
+    <div class="container nav-container">
+      <div class="logo">
+        <i class="fa-solid fa-wind"></i>
+        <span>Aerologic</span>
+      </div>
+      <nav class="desktop-nav">
+        <a href="#" class="active">Dashboard</a>
+        <a href="AirQuality.html">Map</a>
+        <a href="News.html">News</a>
+        <a href="AirMonitor.html">Monitors</a>
+      </nav>
+      <div class="nav-actions">
+        <!-- Search embedded in Nav for non-hero pages could go here, but we use Hero for main search -->
+        <button id="logoutBtn" class="btn-text"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
       </div>
     </div>
+  </header>
 
-    <!-- Right: Temperature Converter -->
-    <div class="right">
-      <div class="converter">
-        <h2>🌡 Temperature Converter</h2>
-        <p>Convert between Celsius, Fahrenheit & Kelvin instantly.</p>
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <div class="container hero-content">
+      <h1>Check Air Quality Near You</h1>
+      <p>Real-time air quality index (AQI), weather forecast, and health alerts.</p>
 
-        <input type="text" id="tempInput" placeholder="Enter temperature">
-        <select id="unit">
-          <option value="C">Celsius (°C)</option>
-          <option value="F">Fahrenheit (°F)</option>
-          <option value="K">Kelvin (K)</option>
-        </select>
-        <button id="convertBtn">Convert</button>
-
-        <div id="errorMsg" class="error"></div>
-        <div id="result"></div>
+      <div class="search-bar-wrapper">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="search-box" placeholder="Search city, place, or station..." autocomplete="off">
+        <button id="searchBtn" class="btn-primary">Search</button>
       </div>
     </div>
-  </div>
+  </section>
 
+  <!-- MAIN DASHBOARD -->
+  <main class="container dashboard">
 
-  <section class="academic-section">
-    <div class="content-wrapper">
-      <div class="left-column">
-        <h2 class="fw-bold">Health effects and sources of air pollution</h2>
-        <p class="subtitle">Can air pollution cause health problems?</p>
+    <!-- LEFT: Main Info -->
+    <div class="dashboard-grid">
 
-        <div class="service-grid">
-          <div class="service-box">
-            <img src="images/airPollution.jpeg" alt="Air pollution affecting children">
-            <h3>How does air pollution affect children?</h3>
-            <p>Air pollution has serious, long-term health consequences for children, impacting their respiratory
-              systems, cognitive development, and overall health. Children are particularly vulnerable because they
-              breathe faster than adults and have developing lungs and brains.</p>
+      <!-- AQI CARD -->
+      <div class="card main-card" id="aqi-card">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-location-dot"></i> <span id="location">Select a City</span></h2>
+          <span class="timestamp" id="timestamp">Updated just now</span>
+        </div>
+
+        <div class="aqi-display">
+          <div class="aqi-badge excellent" id="aqi-badge">
+            <span class="value" id="aqi-value">--</span>
+            <span class="label">US AQI</span>
           </div>
-          <div class="service-box">
-            <img src="images/worldheath.png" alt="World health risk factors">
-            <h3>What are the main risk factors of death worldwide?</h3>
-            <p>The leading risk factors for death worldwide include cardiovascular diseases like ischemic heart disease
-              and stroke, respiratory illnesses such as chronic obstructive pulmonary disease and lower respiratory
-              infections, and non-communicable diseases like diabetes and cancer.</p>
+          <div class="status-text">
+            <h3 id="aqi-status">Waiting for data...</h3>
+            <p id="health-recommendation">Search for a location to see health advice.</p>
           </div>
-          <div class="service-box">
-            <img src="images/airquality.jpg" alt="PM2.5 pollution sources">
-            <h3>Primary Sources of PM2.5 Pollution</h3>
-            <p>Primary sources of PM2.5 pollution include both human-made (anthropogenic) and natural sources. Key
-              anthropogenic sources are combustion processes (like vehicle emissions, industrial activities, and
-              residential heating), construction and demolition, and industrial processes. Natural sources include dust
-              storms, wildfires, and volcanic ash.</p>
+        </div>
+
+        <div class="weather-mini">
+          <div class="w-item">
+            <i class="fa-solid fa-temperature-half"></i>
+            <span id="temperature">--°C</span>
           </div>
-          <div class="service-box">
-            <img src="images/aireffect.png" alt="Health effects of air pollution">
-            <h3>Health effects and sources of air pollution</h3>
-            <p>Air pollution significantly impacts human health, causing respiratory illnesses, cardiovascular diseases,
-              and even cancer, while also contributing to global issues like climate change. The primary sources of air
-              pollution include the burning of fossil fuels, industrial emissions, vehicular exhaust, and agricultural
-              practices.</p>
+          <div class="w-item">
+            <i class="fa-solid fa-droplet"></i>
+            <span id="humidity">--%</span>
           </div>
+          <div class="w-item">
+            <i class="fa-solid fa-wind"></i>
+            <span id="wind">-- m/s</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAP CARD (Moved into grid) -->
+      <div class="card map-card">
+        <div id="map"></div>
+      </div>
+
+    </div>
+
+    <!-- POLLUTANTS GRID -->
+    <section class="pollutants-section">
+      <h3>Primary Pollutants</h3>
+      <div class="pollutants-grid">
+        <div class="p-card">
+          <span class="p-name">PM2.5</span>
+          <span class="p-val" id="pm25">--</span>
+          <span class="p-unit">µg/m³</span>
+        </div>
+        <div class="p-card">
+          <span class="p-name">PM10</span>
+          <span class="p-val" id="pm10">--</span>
+          <span class="p-unit">µg/m³</span>
+        </div>
+        <div class="p-card">
+          <span class="p-name">O3</span>
+          <span class="p-val" id="o3">--</span> <!-- Placeholder logic needed -->
+          <span class="p-unit">ppb</span>
+        </div>
+        <div class="p-card">
+          <span class="p-name">NO2</span>
+          <span class="p-val" id="no2">--</span> <!-- Placeholder logic needed -->
+          <span class="p-unit">ppb</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RANKING & TOOLS -->
+    <div class="extra-grid">
+
+      <!-- Country Ranking List -->
+      <div class="card ranking-card">
+        <h3>Most Polluted Cities (Live)</h3>
+        <ul class="ranking-list" id="countryList">
+          <!-- Populated by JS -->
+          <li class="loading-state">Loading rankings...</li>
+        </ul>
+      </div>
+
+      <!-- Tools / Converter -->
+      <div class="card tools-card">
+        <h3>Temperature Converter</h3>
+        <div class="converter-box">
+          <input type="number" id="tempInput" placeholder="Value">
+          <select id="unit">
+            <option value="C">°C</option>
+            <option value="F">°F</option>
+            <option value="K">K</option>
+          </select>
+          <button id="convertBtn" class="btn-secondary">Convert</button>
+          <div id="result" class="convert-result"></div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- INFO / SEO SECTION -->
+  <section class="info-section">
+    <div class="container">
+      <h2>Understanding Air Quality</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <i class="fa-solid fa-lungs"></i>
+          <h4>Health Effects</h4>
+          <p>Air pollution affects everyone, but children and the elderly are most at risk.</p>
+        </div>
+        <div class="info-item">
+          <i class="fa-solid fa-mask"></i>
+          <h4>Protection</h4>
+          <p>Wear masks and use air purifiers when AQI levels exceed 150.</p>
+        </div>
+        <div class="info-item">
+          <i class="fa-solid fa-smog"></i>
+          <h4>Sources</h4>
+          <p>Vehicle emissions, industrial smoke, and wildfires are primary sources of PM2.5.</p>
         </div>
       </div>
     </div>
   </section>
-  
 
+  <!-- FOOTER -->
   <footer>
-    <div class="foot-panel1">
-      Back to Top
-    </div>
-
-    <div class="foot-panel2">
-      <ul>
-        <p>About IQAir</p>
-        <a href="#">About IQAir
-        </a>
-        <a href="#">- Who We Are
-        </a>
-        <a href="#">- Air Quality Insights </a>
-        <a href="#">- Research & Innovation </a>
-        <a href="#">
-          - Global Partners</a>
-      </ul>
-      <ul>
-        <p>Air Quality</p>
-        <a href="AirQuality.html">Air Quality Map</a>
-        <a href="#">World Air Quality</a>
-        <a href="#">Historical Air Quality Data</a>
-        <a href="#">Live AQI⁺ City Ranking</a>
-      </ul>
-      <ul>
-        <p>Products</p>
-        <a href="AirMonitor.html">Air Quality Monitors</a>
-        <a href="AirPurifier.html">Air Purifiers</a>
-        <a href="#">Replacement Filters</a>
-        <a href="#">HVAC Air Filtration</a>
-        <a href="#">Become an Affiliate</a>
-        <a href="#">IQAir Dashboard</a>
-        <a href="#">Advertise Your Products</a>
-        <a href="#">Face Masks</a>
-      </ul>
-      <ul>
-        <p>News</p>
-        <a href="#">Air Quality News</a>
-        <a href="#">Health and Wellness</a>
-        <a href="#">Allergies and Asthma</a>
-        <a href="#">Pets</a>
-        <a href="#">Success Stories</a>
-        <a href="#">Wildfire</a>
-        <a href="#">Help</a>
-      </ul>
-      <ul class="aerologic-social">
-        <p>Aerologic</p>
-        <p class="footer-description">Your trusted partner for air quality monitoring and solutions.</p>
-        <div class="social-icons">
-          <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-          <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-          <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-          <a href="https://www.linkedin.com/in/shivani-yadav-184032290/" aria-label="LinkedIn"><i
-              class="fab fa-linkedin"></i></a>
-          <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-        </div>
-      </ul>
-    </div>
-
-    <div class="foot-panel3">
-      <div class="logo">
+    <div class="container footer-content">
+      <div class="footer-brand">
         <h3>Aerologic</h3>
+        <p>Trusted Air Quality Data.</p>
+      </div>
+      <div class="footer-links">
+        <a href="#">About</a>
+        <a href="#">API</a>
+        <a href="#">Partners</a>
+        <a href="#">Privacy</a>
       </div>
     </div>
-
-    <div class="foot-panel4">
-      <div class="pages">
-        <a href="#">Conditions of Use</a>
-        <a href="#">Privacy Notice</a>
-        <a href="#">Your Ads Privacy Choices</a>
-      </div>
-      <div class="copy-right">
-        <p>© 1996-2024, Aerologic.com, Inc. or its affiliates</p>
-      </div>
+    <div class="footer-bottom">
+      &copy; 2024 Aerologic Inc. All rights reserved.
     </div>
   </footer>
 
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // Login check
+    // Auth Check Code (Inline to prevent flicker)
     if (localStorage.getItem('loggedIn') !== 'true') {
       window.location.href = 'login.html';
     }
 
-    // Logout functionality
-    document.getElementById('logoutBtn').addEventListener('click', function () {
+    document.getElementById('logoutBtn').addEventListener('click', () => {
       localStorage.removeItem('loggedIn');
       window.location.href = 'login.html';
     });
   </script>
-
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="script.js"></script>
 </body>
 

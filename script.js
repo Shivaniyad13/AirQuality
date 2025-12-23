@@ -1,265 +1,218 @@
-// 🌍 MAP + WEATHER + AQI (Search functionality)
+// 🌍 GLOBAL CONFIG
 const weatherApiKey = "f6dadb771340dc69ef307495d8804991";
+const waqiToken = "3ba2b256d63a29719c13b910a5947e324ade094b"; // Use existing token
 const loader = document.getElementById("loader");
 
-const map = L.map("map").setView([26.8467, 80.9462], 6);
+// 🗺️ MAP INIT
+const map = L.map("map").setView([20.5937, 78.9629], 5); // Default India view
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap contributors",
 }).addTo(map);
-const marker = L.marker([26.8467, 80.9462]).addTo(map);
+const marker = L.marker([20.5937, 78.9629]).addTo(map);
 
-document.getElementById("search-box").addEventListener("change", function () {
-  const location = this.value;
+// 🔍 SEARCH FUNCTIONALITY
+const searchBtn = document.getElementById("searchBtn");
+const searchBox = document.getElementById("search-box");
+
+searchBtn.addEventListener("click", performSearch);
+searchBox.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") performSearch();
+});
+
+function performSearch() {
+  const query = searchBox.value.trim();
+  if (!query) return;
+
   loader.style.display = "flex";
-  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${location}`)
+
+  // 1. Geocoding
+  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`)
     .then((res) => res.json())
     .then((data) => {
       if (data.length === 0) {
-        loader.style.display = "none";
-        alert("Location not found.");
-        return;
+        throw new Error("Location not found");
       }
-      const lat = parseFloat(data[0].lat);
-      const lon = parseFloat(data[0].lon);
-      map.setView([lat, lon], 10);
-      marker.setLatLng([lat, lon]);
+      const { lat, lon, display_name } = data[0];
+      const cityName = display_name.split(",")[0]; // Simple city name
 
-      fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${weatherApiKey}&units=metric`
-      )
-        .then((res) => res.json())
-        .then((weatherData) => {
-          const weather = weatherData.weather[0].main.toLowerCase();
-          const temp = weatherData.main.temp;
-          const city = weatherData.name;
-
-          document.getElementById("location").textContent = `City: ${city}`;
-          document.getElementById(
-            "temperature"
-          ).textContent = `🌡 Temp: ${temp}°C`;
-          document.getElementById(
-            "weather"
-          ).textContent = `☁ Weather: ${weather}`;
-
-          fetch(
-            `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${weatherApiKey}`
-          )
-            .then((res) => res.json())
-            .then((airData) => {
-              const aqi = airData.list[0].main.aqi;
-              const pm2_5 = airData.list[0].components.pm2_5;
-              const pm10 = airData.list[0].components.pm10;
-
-              const aqiText = [
-                "🔵 Good",
-                "🟢 Fair",
-                "🟡 Moderate",
-                "🟠 Poor",
-                "🔴 Very Poor",
-              ][aqi - 1];
-
-              document.getElementById("aqi").textContent = `💨 AQI: ${aqiText}`;
-              document.getElementById("pm25").textContent = `PM2.5: ${pm2_5}`;
-              document.getElementById("pm10").textContent = `PM10: ${pm10}`;
-              loader.style.display = "none";
-            });
-        });
+      updateMap(lat, lon);
+      fetchWeatherData(lat, lon, cityName);
+      fetchAirQuality(lat, lon);
     })
-    .catch(() => {
+    .catch((err) => {
+      console.error(err);
+      alert("Could not find location. Please try again.");
       loader.style.display = "none";
-      alert("Error finding location or weather data.");
     });
-});
-
-// 🌍 COUNTRY AQI DASHBOARD
-// 🌍 COUNTRY AQI DASHBOARD (Fixed Version)
-const countries = [
-  { name: "India", capital: "New Delhi" },
-  { name: "United States", capital: "Washington" },
-  { name: "United Kingdom", capital: "London" },
-  { name: "France", capital: "Paris" },
-  { name: "Germany", capital: "Berlin" },
-  { name: "China", capital: "Beijing" },
-  { name: "Japan", capital: "Tokyo" },
-  { name: "Brazil", capital: "Brasília" },
-  { name: "Russia", capital: "Moscow" },
-  { name: "Canada", capital: "Ottawa" },
-];
-
-// 🔑 IMPORTANT: Use your own valid AQICN token here (replace "demo")
-const token = "3ba2b256d63a29719c13b910a5947e324ade094b";
-const countryList = document.getElementById("countryList");
-
-countries.forEach((country) => {
-  const div = document.createElement("div");
-  div.className = "country";
-  div.innerHTML = `
-    <strong>${country.name}</strong> 
-    (Capital: ${country.capital})
-    <div class="aqi-result">Click to load AQI</div>
-  `;
-
-  const resultDiv = div.querySelector(".aqi-result");
-
-  div.addEventListener("click", async () => {
-    resultDiv.textContent = "⏳ Fetching AQI data...";
-
-    try {
-      // Get coordinates for the capital city
-      const geoResponse = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${country.capital}`
-      );
-      const geoData = await geoResponse.json();
-
-      if (geoData.length === 0) {
-        resultDiv.textContent = "⚠️ Location not found.";
-        return;
-      }
-
-      const { lat, lon } = geoData[0];
-
-      // Fetch AQI based on coordinates
-      const response = await fetch(
-        `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${token}`
-      );
-      const data = await response.json();
-
-      if (data.status === "ok" && data.data.aqi !== undefined) {
-        const aqi = data.data.aqi;
-        const level = getAQILevel(aqi);
-        resultDiv.innerHTML = `
-          AQI: <strong class="${level.toLowerCase()}">${aqi}</strong> (${level})
-        `;
-      } else {
-        resultDiv.textContent = "Data not available.";
-      }
-    } catch (error) {
-      console.error(error);
-      resultDiv.textContent = "⚠️ Error fetching AQI data.";
-    }
-  });
-
-  countryList.appendChild(div);
-});
-
-// Helper function for AQI levels
-function getAQILevel(aqi) {
-  if (aqi <= 50) return "Good";
-  if (aqi <= 100) return "Moderate";
-  if (aqi <= 150) return "Unhealthy";
-  if (aqi <= 200) return "Very Unhealthy";
-  return "Hazardous";
 }
 
-// 📌 ONE PAGE NAVIGATION
-document.addEventListener("DOMContentLoaded", () => {
-  const content = document.getElementById("content");
-  const links = document.querySelectorAll(".nav-link");
+function updateMap(lat, lon) {
+  const newLatLng = [lat, lon];
+  map.setView(newLatLng, 10);
+  marker.setLatLng(newLatLng);
+}
 
-  function loadPage(page) {
-    fetch(`${page}.html`)
-      .then((res) => res.text())
-      .then((data) => {
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = data;
-        const pageContent = tempDiv.querySelector("main") || tempDiv;
-        content.innerHTML = pageContent.innerHTML;
-      })
-      .catch(() => {
-        content.innerHTML = `<p>⚠️ Error loading ${page}.html</p>`;
-      });
-  }
+// 🌦️ WEATHER DATA
+function fetchWeatherData(lat, lon, city) {
+  fetch(
+    `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${weatherApiKey}&units=metric`
+  )
+    .then((res) => res.json())
+    .then((data) => {
+      // Update UI
+      document.getElementById("location").textContent = city || data.name;
+      document.getElementById("temperature").textContent = `${Math.round(data.main.temp)}°C`;
+      document.getElementById("humidity").textContent = `${data.main.humidity}%`;
+      document.getElementById("wind").textContent = `${data.wind.speed} m/s`;
+      document.getElementById("timestamp").textContent = "Updated: " + new Date().toLocaleTimeString();
+    })
+    .catch(console.error);
+}
 
-  links.forEach((link) => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
-      const page = link.getAttribute("data-page");
-      loadPage(page);
-      history.pushState({ page }, "", `#${page}`);
+// 💨 AIR QUALITY DATA
+function fetchAirQuality(lat, lon) {
+  // Using OpenWeatherMap Air Pollution API for pollutants
+  fetch(
+    `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${weatherApiKey}`
+  )
+    .then((res) => res.json())
+    .then((data) => {
+      const components = data.list[0].components;
+      const aqiIdx = data.list[0].main.aqi; // 1-5 scale from OWM
+
+      updatePollutants(components);
+      
+      // OWM uses 1-5, but we want US AQI style for the badge
+      // We often need a real conversion, but for now let's map roughly or fetch from WAQI for better AQI if needed.
+      // Let's TRY WAQI for the main AQI number as it's more accurate for "US Scale" visual
+      fetchWaqiData(lat, lon); 
+    })
+    .catch((err) => {
+      console.error(err);
+      loader.style.display = "none";
     });
-  });
+}
 
-  window.addEventListener("popstate", (e) => {
-    if (e.state && e.state.page) {
-      loadPage(e.state.page);
-    }
-  });
-});
+// WAQI API for better AQI number (US Standard)
+function fetchWaqiData(lat, lon) {
+  fetch(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=${waqiToken}`)
+    .then((res) => res.json())
+    .then((data) => {
+      loader.style.display = "none";
+      if (data.status === "ok") {
+        const aqi = data.data.aqi;
+        updateAqiUI(aqi);
+      } else {
+        // Fallback or error
+        document.getElementById("aqi-status").textContent = "Data Unavailable";
+      }
+    })
+    .catch(() => loader.style.display = "none");
+}
 
-// 🌡️ TEMPERATURE PAGE LOGIC (kept separate to avoid conflicts)
-(function () {
-  const input = document.getElementById("tempInput");
-  const output = document.getElementById("tempResult");
-  const select = document.getElementById("unitSelect");
+function updatePollutants(comp) {
+  document.getElementById("pm25").textContent = comp.pm2_5;
+  document.getElementById("pm10").textContent = comp.pm10;
+  document.getElementById("no2").textContent = comp.no2;
+  document.getElementById("o3").textContent = comp.o3;
+}
 
-  if (!input || !output || !select) return; // run only if converter exists
+function updateAqiUI(aqi) {
+  const badge = document.getElementById("aqi-badge");
+  const valEl = document.getElementById("aqi-value");
+  const statusEl = document.getElementById("aqi-status");
+  const recEl = document.getElementById("health-recommendation");
+  
+  valEl.textContent = aqi;
 
-  document.getElementById("convertBtn").addEventListener("click", () => {
-    const value = parseFloat(input.value);
-    const unit = select.value;
-    let result = "";
+  // Reset classes
+  badge.className = "aqi-badge";
+  let status = "Unknown";
+  let rec = "";
 
-    if (unit === "CtoF") result = ((value * 9) / 5 + 32).toFixed(2) + " °F";
-    if (unit === "FtoC") result = (((value - 32) * 5) / 9).toFixed(2) + " °C";
-
-    output.textContent = result;
-  });
-})();
-
-// Get elements
-const tempInput = document.getElementById("tempInput");
-const unitSelect = document.getElementById("unit");
-const convertBtn = document.getElementById("convertBtn");
-const resultDiv = document.getElementById("result");
-const errorMsg = document.getElementById("errorMsg");
-
-// Convert temperature on button click
-convertBtn.addEventListener("click", () => {
-  const tempValue = parseFloat(tempInput.value);
-  const selectedUnit = unitSelect.value;
-
-  // Clear previous messages
-  errorMsg.textContent = "";
-  resultDiv.textContent = "";
-
-  // Validate input
-  if (isNaN(tempValue)) {
-    errorMsg.textContent = "⚠️ Please enter a valid number.";
-    return;
+  if (aqi <= 50) {
+    badge.classList.add("good");
+    status = "Good";
+    rec = "Air quality is satisfactory, and air pollution poses little or no risk.";
+  } else if (aqi <= 100) {
+    badge.classList.add("moderate");
+    status = "Moderate";
+    rec = "Air quality is acceptable. However, there may be a risk for some people.";
+  } else if (aqi <= 150) {
+    badge.classList.add("unhealthy-sens"); // styling class needed if desired, or reuse moderate
+    badge.style.backgroundColor = "#ff9933"; 
+    status = "Unhealthy for Sensitive Groups";
+    rec = "Members of sensitive groups may experience health effects.";
+  } else if (aqi <= 200) {
+    badge.classList.add("unhealthy");
+    status = "Unhealthy";
+    rec = "Everyone may begin to experience health effects.";
+  } else if (aqi <= 300) {
+    badge.classList.add("very-poor");
+    status = "Very Unhealthy";
+    rec = "Health warnings of emergency conditions. The entire population is more likely to be affected.";
+  } else {
+    badge.classList.add("hazardous"); // Need style
+    badge.style.backgroundColor = "#7e0023";
+    status = "Hazardous";
+    rec = "Health alert: everyone may experience more serious health effects.";
   }
 
-  let celsius, fahrenheit, kelvin;
+  statusEl.textContent = status;
+  recEl.textContent = rec;
+}
 
-  // Conversion logic
-  switch (selectedUnit) {
-    case "C":
-      celsius = tempValue;
-      fahrenheit = (tempValue * 9) / 5 + 32;
-      kelvin = tempValue + 273.15;
-      break;
+// 🏆 RANKINGS (Simulated Real-Time)
+const cities = [
+  { name: "Delhi, India", aqi: 340 },
+  { name: "Lahore, Pakistan", aqi: 289 },
+  { name: "Dhaka, Bangladesh", aqi: 190 },
+  { name: "Beijing, China", aqi: 155 },
+  { name: "Jakarta, Indonesia", aqi: 142 },
+  { name: "Dubai, UAE", aqi: 120 },
+  { name: "Mumbai, India", aqi: 115 },
+  { name: "London, UK", aqi: 35 },
+  { name: "New York, USA", aqi: 28 },
+];
 
-    case "F":
-      celsius = ((tempValue - 32) * 5) / 9;
-      fahrenheit = tempValue;
-      kelvin = ((tempValue - 32) * 5) / 9 + 273.15;
-      break;
+const rankList = document.getElementById("countryList");
+rankList.innerHTML = "";
 
-    case "K":
-      celsius = tempValue - 273.15;
-      fahrenheit = ((tempValue - 273.15) * 9) / 5 + 32;
-      kelvin = tempValue;
-      break;
+cities.sort((a, b) => b.aqi - a.aqi); // Sort bad to good
 
-    default:
-      errorMsg.textContent = "Invalid unit selection.";
-      return;
-  }
-
-  // Display result
-  resultDiv.innerHTML = `
-    <h3>Converted Values:</h3>
-    <p>🌡️ Celsius: <b>${celsius.toFixed(2)} °C</b></p>
-    <p>🔥 Fahrenheit: <b>${fahrenheit.toFixed(2)} °F</b></p>
-    <p>❄️ Kelvin: <b>${kelvin.toFixed(2)} K</b></p>
+cities.slice(0, 5).forEach((city, index) => {
+  const li = document.createElement("li");
+  const aqiClass = city.aqi > 100 ? "bad" : "ok";
+  li.innerHTML = `
+    <span>${index + 1}. ${city.name}</span>
+    <span class="rank-val ${aqiClass}">${city.aqi} AQI</span>
   `;
+  rankList.appendChild(li);
 });
+
+// 🌡️ TEMPERATURE CONVERTER
+document.getElementById("convertBtn").addEventListener("click", () => {
+    const input = parseFloat(document.getElementById("tempInput").value);
+    const unit = document.getElementById("unit").value;
+    const resultDiv = document.getElementById("result");
+    
+    if (isNaN(input)) {
+        resultDiv.textContent = "Please enter a valid number";
+        return;
+    }
+
+    let resText = "";
+    if (unit === "C") {
+        resText = `${(input * 9/5 + 32).toFixed(1)} °F`;
+    } else if (unit === "F") {
+        resText = `${((input - 32) * 5/9).toFixed(1)} °C`;
+    } else {
+        resText = `${(input - 273.15).toFixed(1)} °C`;
+    }
+    
+    resultDiv.textContent = `Result: ${resText}`;
+});
+
+// Initial Search on Load (optional)
+// performSearch(); // Can uncomment to load a default city
+
